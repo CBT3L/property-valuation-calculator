@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YieldIQ — Rental Yield & Investment Analyser</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f5f0;
+  --bg2:#ffffff;
+  --bg3:#f0ede6;
+  --bg4:#e8e4db;
+  --text:#1a1916;
+  --text2:#5a5750;
+  --text3:#9a9690;
+  --border:#e2ddd6;
+  --border2:#ccc8c0;
+  --teal:#0a5c52;
+  --teal2:#0d7a6d;
+  --teal-light:#e8f4f2;
+  --teal-border:#b0d8d4;
+  --amber:#b87a00;
+  --amber-light:#fef8e8;
+  --amber-border:#f0d080;
+  --red:#c0392b;
+  --red-light:#fdf0ef;
+  --red-border:#f0b8b4;
+  --green:#1a7a4a;
+  --green-light:#eaf5ef;
+  --green-border:#a8dfc0;
+  --radius:10px;
+  --radius-lg:16px;
+  --radius-xl:24px;
+  --font-display:'Syne',system-ui,sans-serif;
+  --font-body:'Epilogue',system-ui,sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --shadow-lg:0 4px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-brand{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--teal);letter-spacing:-0.02em}
+.nav-brand span{color:var(--text3);font-weight:400}
+.nav-tags{display:flex;gap:6px}
+.nav-tag{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text3);font-weight:500}
+
+/* HERO STRIP */
+.hero-strip{background:var(--teal);color:#fff;padding:3rem 2rem;position:relative;overflow:hidden}
+.hero-strip::before{content:'';position:absolute;right:-80px;top:-80px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,0.04)}
+.hero-strip::after{content:'';position:absolute;left:-40px;bottom:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,0.03)}
+.hero-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2rem;position:relative;z-index:1}
+.hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.1;letter-spacing:-0.03em;margin-bottom:10px}
+.hero-title em{font-style:italic;font-family:var(--font-body);font-weight:300;color:rgba(255,255,255,0.7)}
+.hero-sub{font-size:14px;color:rgba(255,255,255,0.65);max-width:480px;line-height:1.7}
+.hero-stats{display:flex;flex-direction:column;gap:10px;text-align:right}
+.hero-stat-val{font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:#fff;line-height:1}
+.hero-stat-label{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.06em;margin-top:2px}
+
+/* LAYOUT */
+.page{max-width:1080px;margin:0 auto;padding:2.5rem 2rem 5rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:700px){.two-col,.three-col{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.hero-stats{flex-direction:row;text-align:left}}
+
+/* SECTION LABEL */
+.section-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow)}
+.card+.card{margin-top:1px}
+
+/* FIELDS */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3)}
+.field .hint{font-size:11px;color:var(--text3);line-height:1.5;margin-top:3px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=text],input[type=number],select,textarea{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:14px;padding:9px 12px;width:100%;transition:all 0.18s;outline:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal2);background:#fff;box-shadow:0 0 0 3px rgba(13,122,109,0.08)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9690' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+option{background:#fff}
+
+/* INPUT PREFIX/SUFFIX */
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-prefix,.input-suffix{position:absolute;font-size:13px;color:var(--text3);font-weight:500;pointer-events:none}
+.input-prefix{left:12px}
+.input-suffix{right:12px}
+.input-wrap input{padding-left:24px}
+.input-wrap.has-suffix input{padding-right:36px}
+
+/* RANGE SLIDER */
+.slider-wrap{display:flex;flex-direction:column;gap:6px}
+.slider-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:var(--border2);border-radius:999px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer}
+.slider-val{font-size:13px;font-weight:600;color:var(--teal);min-width:44px;text-align:right}
+
+/* TOGGLE GROUP */
+.toggle-group{display:flex;background:var(--bg3);border-radius:var(--radius);border:1.5px solid var(--border);overflow:hidden}
+.toggle-btn{flex:1;padding:8px 12px;border:none;background:transparent;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:0.02em}
+.toggle-btn.active{background:var(--teal);color:#fff}
+
+/* EXPENSE ITEM */
+.expense-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.expense-item:last-child{border-bottom:none}
+.expense-label{font-size:13px;color:var(--text2)}
+.expense-label small{display:block;font-size:11px;color:var(--text3);margin-top:1px}
+.expense-input-wrap{width:120px}
+
+/* CALCULATE */
+.btn-wrap{margin-top:2rem}
+.btn-calc{width:100%;padding:15px 24px;background:var(--teal);border:none;border-radius:var(--radius-lg);color:#fff;font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:0.02em;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-calc:hover{background:var(--teal2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(10,92,82,0.25)}
+.btn-calc:active{transform:none}
+.btn-calc .arrow{font-size:18px;transition:transform 0.18s}
+.btn-calc:hover .arrow{transform:translateX(4px)}
+
+/* RESULTS */
+.results-wrap{display:none;animation:fadeUp 0.45s ease}
+.results-wrap.show{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* VERDICT BANNER */
+.verdict{border-radius:var(--radius-xl);padding:2rem 2.5rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2rem}
+.verdict.good{background:var(--green-light);border:1.5px solid var(--green-border)}
+.verdict.ok{background:var(--amber-light);border:1.5px solid var(--amber-border)}
+.verdict.poor{background:var(--red-light);border:1.5px solid var(--red-border)}
+.verdict-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.verdict.good .verdict-label{color:var(--green)}
+.verdict.ok .verdict-label{color:var(--amber)}
+.verdict.poor .verdict-label{color:var(--red)}
+.verdict-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:8px}
+.verdict.good .verdict-title{color:var(--green)}
+.verdict.ok .verdict-title{color:var(--amber)}
+.verdict.poor .verdict-title{color:var(--red)}
+.verdict-sub{font-size:13px;color:var(--text2);line-height:1.7}
+.verdict-grade{font-family:var(--font-display);font-size:4rem;font-weight:700;line-height:1;text-align:center}
+.verdict.good .verdict-grade{color:var(--green)}
+.verdict.ok .verdict-grade{color:var(--amber)}
+.verdict.poor .verdict-grade{color:var(--red)}
+.verdict-grade-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-top:4px;text-align:center}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.25rem;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.kpi-value{font-family:var(--font-display);font-size:1.6rem;font-weight:700;line-height:1.1;color:var(--text)}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.kpi.highlight{background:var(--teal);border-color:var(--teal)}
+.kpi.highlight .kpi-label{color:rgba(255,255,255,0.6)}
+.kpi.highlight .kpi-value{color:#fff}
+.kpi.highlight .kpi-sub{color:rgba(255,255,255,0.5)}
+
+/* CHART */
+.chart-wrap{position:relative;height:220px;margin:1.5rem 0}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:180px;padding:0 4px}
+.chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar-val{font-size:11px;font-weight:600;color:var(--text2)}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.6s cubic-bezier(0.4,0,0.2,1);min-height:2px}
+.chart-bar-label{font-size:10px;color:var(--text3);text-align:center;line-height:1.3;margin-top:6px}
+.chart-baseline{height:1px;background:var(--border2);margin:0 4px}
+
+/* CASHFLOW TABLE */
+.cf-table{width:100%;border-collapse:collapse}
+.cf-table tr{border-bottom:1px solid var(--border)}
+.cf-table tr:last-child{border-bottom:none}
+.cf-table td{padding:11px 8px;font-size:14px}
+.cf-table td:first-child{color:var(--text2)}
+.cf-table td:last-child{text-align:right;font-weight:500;color:var(--text)}
+.cf-table .income-row td{color:var(--green)}
+.cf-table .expense-row td:last-child{color:var(--red)}
+.cf-table .total-row td{font-weight:700;font-size:15px;border-top:2px solid var(--border2);padding-top:14px}
+.cf-table .total-row.positive td{color:var(--green)}
+.cf-table .total-row.negative td{color:var(--red)}
+.cf-table .sub-row td{font-size:12px;color:var(--text3);padding-top:4px;padding-bottom:4px}
+
+/* TABS */
+.tab-nav{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab-link{padding:8px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;margin-bottom:-1px;transition:all 0.15s}
+.tab-link:hover{color:var(--text2)}
+.tab-link.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* COMPARISON TABLE */
+.comp-table{width:100%;border-collapse:collapse}
+.comp-table th{text-align:left;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);padding:10px 8px;border-bottom:2px solid var(--border)}
+.comp-table td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--border)}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .yours{background:var(--teal-light);font-weight:600}
+.comp-table .yours td:first-child{border-left:3px solid var(--teal2)}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:0.04em}
+.tag-green{background:var(--green-light);color:var(--green);border:1px solid var(--green-border)}
+.tag-amber{background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border)}
+.tag-red{background:var(--red-light);color:var(--red);border:1px solid var(--red-border)}
+
+/* BREAK-EVEN */
+.be-track{height:12px;background:var(--bg3);border-radius:999px;overflow:hidden;margin:8px 0;border:1px solid var(--border)}
+.be-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal2),var(--teal));transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+
+/* SCENARIO CARDS */
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:1rem}
+.scenario-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.25rem}
+.scenario-card-title{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.scenario-val{font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.scenario-desc{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* INSIGHT BOX */
+.insight{background:var(--teal-light);border:1px solid var(--teal-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-top:1.25rem}
+.insight-title{font-size:12px;font-weight:700;color:var(--teal);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.insight p{font-size:12px;color:var(--text2);line-height:1.7}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:11px;color:var(--text3);line-height:1.8}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">YieldIQ <span>/ Rental Yield & Investment Analyser</span></div>
+  <div class="nav-tags">
+    <span class="nav-tag">Australian Market</span>
+    <span class="nav-tag">2024–25</span>
+  </div>
+</nav>
+
+<div class="hero-strip">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Property Investment Analysis</div>
+      <h1 class="hero-title">Know your numbers<br><em>before you commit.</em></h1>
+      <p class="hero-sub">Model gross yield, net yield, annual cashflow, break-even rent, and 10-year equity growth — all from a single set of inputs. Built for Australian residential property investors.</p>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-val">3.0–4.5%</div>
+        <div class="hero-stat-label">Typical Melbourne<br>gross yield range</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">6+</div>
+        <div class="hero-stat-label">Analysis modules<br>included</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ===== INPUT FORM ===== -->
+  <div class="two-col" style="margin-bottom:20px">
+
+    <!-- LEFT: PROPERTY -->
+    <div>
+      <div class="section-label">Property details</div>
+      <div class="card">
+        <div class="field">
+          <label>Purchase Price ($)</label>
+          <div class="input-wrap"><span class="input-prefix">$</span><input type="number" id="purchasePrice" value="850000" oninput="liveUpdate()"></div>
+        </div>
+        <div class="field">
+          <label>Property Type</label>
+          <select id="propType" onchange="liveUpdate()">
+            <option value="house">House</option>
+            <option value="unit" selected>Unit / Apartment</option>
+            <option value="townhouse">Townhouse</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Bedrooms</label>
+            <select id="beds" onchange="liveUpdate()">
+              <option value="1">1 bed</option>
+              <option value="2" selected>2 beds</option>
+              <option value="3">3 beds</option>
+              <option value="4">4 beds</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bathrooms</label>
+            <select id="baths" onchange="liveUpdate()">
+              <option value="1" selected>1 bath</option>
+              <option value="2">2 baths</option>
+              <option value="3">3 baths</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Suburb / Location</label>
+          <input type="text" id="suburb" placeholder="e.g. Southbank VIC 3006" oninput="liveUpdate()">
+        </div>
+        <div class="field">
+          <label>Weekly Rent ($)</label>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <span style="font-size:13px;color:var(--text3)">$</span>
+              <input type="range" id="rentSlider" min="200" max="2000" value="550" step="10" oninput="syncRent(this.value)">
+              <span class="slider-val" id="rentSliderVal">$550</span>
+            </div>
+            <div class="input-wrap" style="margin-top:4px"><span class="input-prefix">$</span><input type="number" id="weeklyRent" value="550" oninput="syncRentInput(this.value)"></div>
+          </div>
+          <span class="hint">Estimated current market rent per week</span>
+        </div>
+        <div class="field">
+          <label>Annual Rent Growth Rate</label>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <input type="range" id="rentGrowth" min="0" max="8" value="3" step="0.5" oninput="document.getElementById('rentGrowthVal').textContent=this.value+'%';liveUpdate()">
+              <span class="slider-val" id="rentGrowthVal">3%</span>
+            </div>
+          </div>
+          <span class="hint">Historical average for AU residential: 2–4% p.a.</span>
+        </div>
+        <div class="field">
+          <label>Expected Annual Capital Growth</label>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <input type="range" id="capGrowth" min="0" max="12" value="5" step="0.5" oninput="document.getElementById('capGrowthVal').textContent=this.value+'%';liveUpdate()">
+              <span class="slider-val" id="capGrowthVal">5%</span>
+            </div>
+          </div>
+          <span class="hint">Melbourne long-run median: ~5–7% p.a.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: FINANCING & EXPENSES -->
+    <div>
+      <div class="section-label">Financing</div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="field">
+          <label>Loan Type</label>
+          <div class="toggle-group" id="loanTypeToggle">
+            <button class="toggle-btn active" onclick="setLoanType('io',this)">Interest Only</button>
+            <button class="toggle-btn" onclick="setLoanType('pi',this)">Principal & Interest</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Deposit (%)</label>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="depositPct" min="5" max="40" value="20" step="1" oninput="document.getElementById('depositPctVal').textContent=this.value+'%';liveUpdate()">
+                <span class="slider-val" id="depositPctVal">20%</span>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Interest Rate (%)</label>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="interestRate" min="3" max="9" value="6.2" step="0.05" oninput="document.getElementById('interestRateVal').textContent=parseFloat(this.value).toFixed(2)+'%';liveUpdate()">
+                <span class="slider-val" id="interestRateVal">6.20%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Loan Term (years)</label>
+          <select id="loanTerm" onchange="liveUpdate()">
+            <option value="20">20 years</option>
+            <option value="25">25 years</option>
+            <option value="30" selected>30 years</option>
+          </select>
+        </div>
+        <div id="stampDutyInfo" class="insight" style="margin-top:0.75rem">
+          <div class="insight-title">&#9432; Upfront Costs Estimate</div>
+          <p id="stampDutyText">Loading...</p>
+        </div>
+      </div>
+
+      <div class="section-label">Annual Expenses</div>
+      <div class="card">
+        <div class="expense-item">
+          <div class="expense-label">Council Rates<small>Annual council rates — est.</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="council" value="1800" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Water Rates<small>Annual water charges</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="water" value="800" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Building Insurance<small>Landlord + building cover</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="insurance" value="1400" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Property Management<small>Typically 7–10% of rent</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="mgmtPct" value="8.5" step="0.5" oninput="liveUpdate()"><span class="input-suffix">%</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Maintenance & Repairs<small>Allow 0.5–1% of value p.a.</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="maintenance" value="3500" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Vacancy Allowance<small>Typical: 2–4 weeks p.a.</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="vacancyWeeks" value="2" min="0" max="12" oninput="liveUpdate()"><span class="input-suffix">wks</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Body Corporate<small>Units / strata only (0 if house)</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="bodyCorp" value="3200" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+        <div class="expense-item">
+          <div class="expense-label">Other / Misc.<small>Advertising, inspections, etc.</small></div>
+          <div class="expense-input-wrap"><div class="input-wrap has-suffix"><input type="number" id="misc" value="500" oninput="liveUpdate()"><span class="input-suffix">/yr</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-wrap">
+    <button class="btn-calc" onclick="calculate()">
+      Run Full Investment Analysis <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <!-- ===== RESULTS ===== -->
+  <div class="results-wrap" id="results">
+    <div style="margin-top:3rem;margin-bottom:1.5rem">
+      <div class="section-label">Investment verdict</div>
+    </div>
+
+    <div class="verdict" id="verdict">
+      <div>
+        <div class="verdict-label" id="verdictLabel">—</div>
+        <div class="verdict-title" id="verdictTitle">—</div>
+        <div class="verdict-sub" id="verdictSub">—</div>
+      </div>
+      <div>
+        <div class="verdict-grade" id="verdictGrade">—</div>
+        <div class="verdict-grade-label">Yield Grade</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi highlight">
+        <div class="kpi-label">Net Yield</div>
+        <div class="kpi-value" id="kNetYield">—</div>
+        <div class="kpi-sub">after all expenses</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Gross Yield</div>
+        <div class="kpi-value" id="kGrossYield">—</div>
+        <div class="kpi-sub">before expenses</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Annual Cashflow</div>
+        <div class="kpi-value" id="kCashflow">—</div>
+        <div class="kpi-sub" id="kCashflowSub">after mortgage</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Weekly Shortfall</div>
+        <div class="kpi-value" id="kWeekly">—</div>
+        <div class="kpi-sub">top-up needed</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Loan Amount</div>
+        <div class="kpi-value" id="kLoan">—</div>
+        <div class="kpi-sub" id="kLoanSub">at selected LVR</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Break-even Rent</div>
+        <div class="kpi-value" id="kBreakeven">—</div>
+        <div class="kpi-sub">to be cashflow neutral</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="card">
+      <div class="tab-nav">
+        <button class="tab-link active" onclick="openTab('cashflow',this)">Cashflow</button>
+        <button class="tab-link" onclick="openTab('chart',this)">Chart</button>
+        <button class="tab-link" onclick="openTab('tenyear',this)">10-Year Projection</button>
+        <button class="tab-link" onclick="openTab('benchmark',this)">Benchmark</button>
+        <button class="tab-link" onclick="openTab('scenarios',this)">Scenarios</button>
+      </div>
+
+      <!-- CASHFLOW TAB -->
+      <div class="tab-panel active" id="tab-cashflow">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Annual income and expense breakdown — year 1</p>
+        <table class="cf-table" id="cashflowTable"></table>
+      </div>
+
+      <!-- CHART TAB -->
+      <div class="tab-panel" id="tab-chart">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Visual breakdown of where your money goes each year</p>
+        <div class="chart-wrap">
+          <div class="chart-bars" id="chartBars"></div>
+          <div class="chart-baseline"></div>
+        </div>
+        <div id="chartLegend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:0.5rem"></div>
+      </div>
+
+      <!-- 10-YEAR TAB -->
+      <div class="tab-panel" id="tab-tenyear">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Projected property value, equity, and cumulative cashflow over 10 years</p>
+        <table class="cf-table" id="tenyearTable"></table>
+      </div>
+
+      <!-- BENCHMARK TAB -->
+      <div class="tab-panel" id="tab-benchmark">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">How your property compares to typical Australian market benchmarks</p>
+        <table class="comp-table" id="benchmarkTable">
+          <thead><tr><th>Metric</th><th>Your Property</th><th>Typical Melbourne</th><th>Assessment</th></tr></thead>
+          <tbody id="benchmarkBody"></tbody>
+        </table>
+        <div class="insight" style="margin-top:1.25rem">
+          <div class="insight-title">&#9432; About these benchmarks</div>
+          <p>Benchmarks reflect typical inner and middle Melbourne residential investment figures for 2024–25. Outer suburban properties may achieve higher gross yields (4–5%) but lower capital growth. Inner-city units often yield more but appreciate less than houses.</p>
+        </div>
+      </div>
+
+      <!-- SCENARIOS TAB -->
+      <div class="tab-panel" id="tab-scenarios">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:0.5rem">How does your investment perform under different conditions?</p>
+        <div class="scenario-grid" id="scenarioGrid"></div>
+        <div style="margin-top:1.5rem">
+          <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:0.75rem">Break-even Analysis</p>
+          <p style="font-size:12px;color:var(--text3);margin-bottom:0.5rem">Current rent covers <span id="bePercent" style="font-weight:600;color:var(--teal)">—</span> of total annual costs</p>
+          <div class="be-track"><div class="be-fill" id="beFill" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px"><span>0%</span><span>Break-even (100%)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  YieldIQ — Built for educational and indicative purposes only. Not financial advice.<br>
+  Figures are estimates based on inputs provided. Consult a licensed financial adviser and registered valuer before investing.<br>
+  Australian market data references 2024–25 figures. All amounts in AUD.
+</footer>
+
+<script>
+let loanType = 'io';
+function setLoanType(type, btn) {
+  loanType = type;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  liveUpdate();
+}
+function syncRent(v) { document.getElementById('weeklyRent').value = v; document.getElementById('rentSliderVal').textContent = '$' + parseInt(v).toLocaleString('en-AU'); liveUpdate(); }
+function syncRentInput(v) { document.getElementById('rentSlider').value = v; document.getElementById('rentSliderVal').textContent = '$' + (parseInt(v)||0).toLocaleString('en-AU'); liveUpdate(); }
+function openTab(name, btn) {
+  document.querySelectorAll('.tab-link').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+function fmt(n) { return '$' + Math.round(Math.abs(n)).toLocaleString('en-AU'); }
+function fmtSigned(n) { return (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-AU'); }
+function fmtPct(n) { return n.toFixed(2) + '%'; }
+function pmt(rate, nper, pv) { if(rate===0) return pv/nper; return (rate * pv) / (1 - Math.pow(1+rate,-nper)); }
+
+function getInputs() {
+  return {
+    price:      parseFloat(document.getElementById('purchasePrice').value) || 0,
+    rent:       parseFloat(document.getElementById('weeklyRent').value) || 0,
+    beds:       parseInt(document.getElementById('beds').value),
+    baths:      parseInt(document.getElementById('baths').value),
+    propType:   document.getElementById('propType').value,
+    suburb:     document.getElementById('suburb').value,
+    depositPct: parseFloat(document.getElementById('depositPct').value) / 100,
+    intRate:    parseFloat(document.getElementById('interestRate').value) / 100,
+    loanTerm:   parseInt(document.getElementById('loanTerm').value),
+    rentGrowth: parseFloat(document.getElementById('rentGrowth').value) / 100,
+    capGrowth:  parseFloat(document.getElementById('capGrowth').value) / 100,
+    council:    parseFloat(document.getElementById('council').value) || 0,
+    water:      parseFloat(document.getElementById('water').value) || 0,
+    insurance:  parseFloat(document.getElementById('insurance').value) || 0,
+    mgmtPct:    parseFloat(document.getElementById('mgmtPct').value) / 100,
+    maintenance:parseFloat(document.getElementById('maintenance').value) || 0,
+    vacancyWks: parseFloat(document.getElementById('vacancyWeeks').value) || 0,
+    bodyCorp:   parseFloat(document.getElementById('bodyCorp').value) || 0,
+    misc:       parseFloat(document.getElementById('misc').value) || 0,
+  };
+}
+
+function compute(inp) {
+  const loan    = inp.price * (1 - inp.depositPct);
+  const deposit = inp.price * inp.depositPct;
+  const monthlyRate = inp.intRate / 12;
+  const annualInterest = loan * inp.intRate;
+  const annualPI = pmt(monthlyRate, inp.loanTerm * 12, loan) * 12;
+  const annualMortgage = loanType === 'io' ? annualInterest : annualPI;
+
+  const annualRent = inp.rent * 52;
+  const vacancyLoss = inp.rent * inp.vacancyWks;
+  const effectiveRent = annualRent - vacancyLoss;
+  const mgmtFee = effectiveRent * inp.mgmtPct;
+
+  const totalExpenses = inp.council + inp.water + inp.insurance + mgmtFee + inp.maintenance + inp.bodyCorp + inp.misc;
+  const totalCost = totalExpenses + annualMortgage;
+
+  const grossYield = annualRent / inp.price;
+  const netYield = (effectiveRent - totalExpenses) / inp.price;
+  const annualCashflow = effectiveRent - totalCost;
+  const weeklyNet = annualCashflow / 52;
+
+  // stamp duty estimate (VIC approximate)
+  const sd = inp.price <= 600000
+    ? inp.price * 0.055
+    : 33000 + (inp.price - 600000) * 0.065;
+  const otherUpfront = inp.price * 0.015; // legal, building inspection
+  const totalUpfront = deposit + sd + otherUpfront;
+
+  // break-even rent
+  const beWeeklyRent = totalCost / (52 - inp.vacancyWks);
+
+  return { loan, deposit, annualRent, effectiveRent, mgmtFee, vacancyLoss,
+           totalExpenses, annualMortgage, annualInterest, annualPI, totalCost,
+           grossYield, netYield, annualCashflow, weeklyNet, beWeeklyRent,
+           sd, otherUpfront, totalUpfront };
+}
+
+function liveUpdate() {
+  const inp = getInputs();
+  const c = compute(inp);
+  const sdText = `Deposit: ${fmt(c.deposit)} · VIC stamp duty (est.): ${fmt(c.sd)} · Legal/inspection: ${fmt(c.otherUpfront)} · <strong>Total upfront: ${fmt(c.totalUpfront)}</strong>`;
+  document.getElementById('stampDutyText').innerHTML = sdText;
+}
+
+function calculate() {
+  const inp = getInputs();
+  const c = compute(inp);
+
+  // Verdict
+  let vClass, vLabel, vTitle, vSub, vGrade;
+  if (c.netYield >= 0.04) {
+    vClass='good'; vLabel='Strong Investment'; vGrade='A';
+    vTitle = fmtPct(c.netYield * 100) + ' net yield';
+    vSub = 'This property produces a strong net yield above the Melbourne benchmark of 2.5–3.5%. The rental income more than covers holding costs, with a healthy cashflow position.';
+  } else if (c.netYield >= 0.025) {
+    vClass='ok'; vLabel='Viable Investment'; vGrade='B';
+    vTitle = fmtPct(c.netYield * 100) + ' net yield';
+    vSub = 'This property sits within the typical Melbourne investment range. You\'ll likely need to top up the mortgage from your own income, but capital growth may provide strong long-term returns.';
+  } else if (c.netYield >= 0.01) {
+    vClass='ok'; vLabel='Marginal — Growth Play'; vGrade='C';
+    vTitle = fmtPct(c.netYield * 100) + ' net yield';
+    vSub = 'The yield alone doesn\'t justify the investment. This property may make sense only if strong capital growth is expected. Requires significant income top-up.';
+  } else {
+    vClass='poor'; vLabel='High Negative Gearing'; vGrade='D';
+    vTitle = fmtPct(c.netYield * 100) + ' net yield';
+    vSub = 'This property will cost you significantly more to hold than it earns. This position is only sustainable if you have strong income and expect substantial capital growth.';
+  }
+  const vel = document.getElementById('verdict');
+  vel.className = 'verdict ' + vClass;
+  document.getElementById('verdictLabel').textContent = vLabel;
+  document.getElementById('verdictTitle').textContent = vTitle;
+  document.getElementById('verdictSub').textContent = vSub;
+  document.getElementById('verdictGrade').textContent = vGrade;
+
+  // KPIs
+  document.getElementById('kGrossYield').textContent = fmtPct(c.grossYield * 100);
+  document.getElementById('kNetYield').textContent = fmtPct(c.netYield * 100);
+  document.getElementById('kCashflow').textContent = (c.annualCashflow >= 0 ? '+' : '') + fmt(c.annualCashflow);
+  document.getElementById('kCashflow').style.color = c.annualCashflow >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('kCashflowSub').textContent = c.annualCashflow >= 0 ? 'positive cashflow' : 'annual shortfall';
+  const weeklyLabel = c.weeklyNet >= 0 ? '+' + fmt(c.weeklyNet) + '/wk surplus' : fmt(Math.abs(c.weeklyNet)) + '/wk top-up';
+  document.getElementById('kWeekly').textContent = weeklyLabel;
+  document.getElementById('kWeekly').style.color = c.weeklyNet >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('kLoan').textContent = fmt(c.loan);
+  document.getElementById('kLoanSub').textContent = (100 - inp.depositPct * 100).toFixed(0) + '% LVR · ' + loanType.toUpperCase();
+  document.getElementById('kBreakeven').textContent = '$' + Math.round(c.beWeeklyRent) + '/wk';
+
+  // Cashflow table
+  document.getElementById('cashflowTable').innerHTML = `
+    <tr class="income-row"><td>Gross annual rent (${inp.rent}/wk × 52)</td><td>+${fmt(c.annualRent)}</td></tr>
+    <tr class="sub-row"><td>Less vacancy (${inp.vacancyWks} wks)</td><td>-${fmt(c.vacancyLoss)}</td></tr>
+    <tr class="income-row"><td><strong>Effective annual rent</strong></td><td><strong>+${fmt(c.effectiveRent)}</strong></td></tr>
+    <tr><td colspan="2" style="padding:6px 0;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase">Expenses</td></tr>
+    <tr class="expense-row"><td>Council rates</td><td>-${fmt(inp.council)}</td></tr>
+    <tr class="expense-row"><td>Water rates</td><td>-${fmt(inp.water)}</td></tr>
+    <tr class="expense-row"><td>Building & landlord insurance</td><td>-${fmt(inp.insurance)}</td></tr>
+    <tr class="expense-row"><td>Property management (${(inp.mgmtPct*100).toFixed(1)}% of effective rent)</td><td>-${fmt(c.mgmtFee)}</td></tr>
+    <tr class="expense-row"><td>Maintenance & repairs</td><td>-${fmt(inp.maintenance)}</td></tr>
+    ${inp.propType !== 'house' ? `<tr class="expense-row"><td>Body corporate / strata</td><td>-${fmt(inp.bodyCorp)}</td></tr>` : ''}
+    <tr class="expense-row"><td>Miscellaneous</td><td>-${fmt(inp.misc)}</td></tr>
+    <tr><td><strong>Total property expenses</strong></td><td>-${fmt(c.totalExpenses)}</td></tr>
+    <tr><td colspan="2" style="padding:6px 0;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase">Financing</td></tr>
+    <tr class="expense-row"><td>${loanType === 'io' ? 'Interest only repayment' : 'Principal & interest repayment'}</td><td>-${fmt(c.annualMortgage)}</td></tr>
+    ${loanType === 'pi' ? `<tr class="sub-row"><td>— of which interest</td><td>-${fmt(c.annualInterest)}</td></tr><tr class="sub-row"><td>— of which principal repayment</td><td>${fmt(c.annualPI - c.annualInterest)}</td></tr>` : ''}
+    <tr class="total-row ${c.annualCashflow >= 0 ? 'positive' : 'negative'}">
+      <td>Net annual cashflow</td>
+      <td>${c.annualCashflow >= 0 ? '+' : '-'}${fmt(c.annualCashflow)}</td>
+    </tr>
+  `;
+
+  // Chart
+  const items = [
+    { label: 'Gross Rent', val: c.annualRent, color: 'var(--teal)' },
+    { label: 'Mortgage', val: c.annualMortgage, color: 'var(--text3)' },
+    { label: 'Expenses', val: c.totalExpenses, color: 'var(--amber)' },
+    { label: 'Net Flow', val: Math.abs(c.annualCashflow), color: c.annualCashflow >= 0 ? 'var(--green)' : 'var(--red)' },
+  ];
+  const maxVal = Math.max(...items.map(i => i.val));
+  document.getElementById('chartBars').innerHTML = items.map(item => `
+    <div class="chart-bar-group">
+      <div class="chart-bar-val">${fmt(item.val)}</div>
+      <div class="chart-bar" style="background:${item.color};height:${(item.val/maxVal*160).toFixed(0)}px"></div>
+      <div class="chart-bar-label">${item.label}</div>
+    </div>
+  `).join('');
+  document.getElementById('chartLegend').innerHTML = items.map(i =>
+    `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:10px;height:10px;border-radius:2px;background:${i.color};flex-shrink:0"></div>${i.label}</div>`
+  ).join('');
+
+  // 10-year projection
+  let propVal = inp.price, cumCashflow = 0, equity = c.deposit;
+  let rows = `<tr style="font-size:11px;border-bottom:2px solid var(--border2)"><td style="color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Year</td><td style="text-align:right;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Property Value</td><td style="text-align:right;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Equity</td><td style="text-align:right;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Annual Rent</td><td style="text-align:right;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Cum. Cashflow</td></tr>`;
+  let outstandingLoan = c.loan;
+  for (let yr = 1; yr <= 10; yr++) {
+    propVal *= (1 + inp.capGrowth);
+    const yearRent = inp.rent * 52 * Math.pow(1 + inp.rentGrowth, yr - 1);
+    const yearCashflow = yearRent * (1 - inp.mgmtPct) - (c.totalExpenses - c.mgmtFee + yearRent * inp.mgmtPct) - c.annualMortgage;
+    cumCashflow += yearCashflow;
+    if (loanType === 'pi') {
+      const princPaid = (c.annualPI - c.annualInterest) * yr;
+      outstandingLoan = c.loan - princPaid;
+    }
+    equity = propVal - outstandingLoan;
+    const cfColor = cumCashflow >= 0 ? 'var(--green)' : 'var(--red)';
+    rows += `<tr><td>Year ${yr}</td><td style="text-align:right">${fmt(propVal)}</td><td style="text-align:right;color:var(--teal);font-weight:500">${fmt(equity)}</td><td style="text-align:right">${fmt(yearRent)}</td><td style="text-align:right;color:${cfColor};font-weight:500">${fmtSigned(cumCashflow)}</td></tr>`;
+  }
+  document.getElementById('tenyearTable').innerHTML = rows;
+
+  // Benchmark
+  const benchmarks = [
+    { metric: 'Gross Yield', yours: fmtPct(c.grossYield*100), typical: '3.0 – 4.5%', tag: c.grossYield >= 0.03 && c.grossYield <= 0.045 ? 'tag-green' : c.grossYield > 0.045 ? 'tag-green' : 'tag-amber', tagText: c.grossYield >= 0.03 ? 'On target' : 'Below avg' },
+    { metric: 'Net Yield', yours: fmtPct(c.netYield*100), typical: '2.0 – 3.5%', tag: c.netYield >= 0.02 ? 'tag-green' : c.netYield >= 0.01 ? 'tag-amber' : 'tag-red', tagText: c.netYield >= 0.02 ? 'On target' : c.netYield >= 0.01 ? 'Marginal' : 'Below avg' },
+    { metric: 'Mgmt Fee Rate', yours: fmtPct(inp.mgmtPct*100), typical: '7.0 – 10.0%', tag: 'tag-green', tagText: 'Typical' },
+    { metric: 'Maintenance Allowance', yours: fmt(inp.maintenance) + '/yr', typical: fmt(inp.price * 0.005) + ' – ' + fmt(inp.price * 0.01) + '/yr', tag: inp.maintenance >= inp.price * 0.005 ? 'tag-green' : 'tag-amber', tagText: inp.maintenance >= inp.price * 0.005 ? 'Adequate' : 'Under-provisioned' },
+    { metric: 'Vacancy Allowance', yours: inp.vacancyWks + ' weeks', typical: '2 – 3 weeks', tag: inp.vacancyWks >= 2 ? 'tag-green' : 'tag-amber', tagText: inp.vacancyWks >= 2 ? 'Adequate' : 'Optimistic' },
+    { metric: 'LVR', yours: fmtPct((1 - inp.depositPct) * 100), typical: '70 – 80%', tag: (1 - inp.depositPct) <= 0.80 ? 'tag-green' : 'tag-amber', tagText: (1 - inp.depositPct) <= 0.80 ? 'Conservative' : 'High LVR' },
+  ];
+  document.getElementById('benchmarkBody').innerHTML = benchmarks.map(b =>
+    `<tr class="yours"><td>${b.metric}</td><td><strong>${b.yours}</strong></td><td style="color:var(--text3)">${b.typical}</td><td><span class="tag ${b.tag}">${b.tagText}</span></td></tr>`
+  ).join('');
+
+  // Scenarios
+  const scenarios = [
+    { title: 'Rent drops 10%', rent: inp.rent * 0.90 },
+    { title: 'Rent rises 10%', rent: inp.rent * 1.10 },
+    { title: 'Rate rises +1%', intRate: inp.intRate + 0.01, rent: inp.rent },
+    { title: 'Rate falls −0.5%', intRate: inp.intRate - 0.005, rent: inp.rent },
+    { title: 'Vacancy 6 weeks', vacancyWks: 6, rent: inp.rent },
+    { title: 'Maintenance +$3k', maintenance: inp.maintenance + 3000, rent: inp.rent },
+  ];
+  document.getElementById('scenarioGrid').innerHTML = scenarios.map(s => {
+    const si = Object.assign({}, inp, s);
+    const sc = compute(si);
+    const color = sc.annualCashflow >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<div class="scenario-card">
+      <div class="scenario-card-title">${s.title}</div>
+      <div class="scenario-val" style="color:${color}">${fmtSigned(sc.annualCashflow)}/yr</div>
+      <div class="scenario-desc">Net yield: ${fmtPct(sc.netYield*100)} · Weekly: ${fmtSigned(sc.weeklyNet)}</div>
+    </div>`;
+  }).join('');
+
+  // Break-even
+  const bePct = Math.min(100, (c.effectiveRent / c.totalCost * 100));
+  document.getElementById('bePercent').textContent = bePct.toFixed(0) + '%';
+  document.getElementById('beFill').style.width = bePct.toFixed(0) + '%';
+
+  document.getElementById('results').classList.add('show');
+  setTimeout(() => document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+// Run live update on load
+window.addEventListener('load', liveUpdate);
+</script>
+</body>
+</html>
