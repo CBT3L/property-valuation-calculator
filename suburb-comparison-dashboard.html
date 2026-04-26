@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuburbIQ — Melbourne Suburb Comparison Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0f;
+  --bg2:#13131a;
+  --bg3:#1a1a24;
+  --bg4:#21212e;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.1);
+  --text:#f2f0f8;
+  --text2:#9b98b0;
+  --text3:#5c5a70;
+  --a:#7c6af7;
+  --a2:#a99cf8;
+  --a-bg:rgba(124,106,247,0.1);
+  --a-border:rgba(124,106,247,0.25);
+  --b:#f97316;
+  --b2:#fdba74;
+  --b-bg:rgba(249,115,22,0.1);
+  --b-border:rgba(249,115,22,0.25);
+  --green:#34d399;
+  --green-bg:rgba(52,211,153,0.1);
+  --red:#f87171;
+  --red-bg:rgba(248,113,113,0.1);
+  --gold:#f59e0b;
+  --r:10px;--rl:16px;--rxl:24px;
+  --font-display:'Instrument Serif',Georgia,serif;
+  --font:'Manrope',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* NAV */
+nav{height:54px;border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(12,12,15,0.92);backdrop-filter:blur(16px);z-index:100}
+.brand{font-family:var(--font-display);font-size:19px;color:var(--text);letter-spacing:-0.01em}
+.brand em{font-style:italic;color:var(--a2)}
+.nav-meta{font-size:11px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+
+/* PAGE */
+.page{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+
+/* HERO */
+.hero{text-align:center;padding:3rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--a2);margin-bottom:12px}
+.hero-title{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;letter-spacing:-0.02em;margin-bottom:12px}
+.hero-title em{font-style:italic;color:var(--a2)}
+.hero-sub{font-size:14px;color:var(--text2);max-width:520px;margin:0 auto;line-height:1.75}
+
+/* SUBURB PICKER */
+.picker{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;margin-bottom:2rem}
+@media(max-width:640px){.picker{grid-template-columns:1fr;text-align:center}}
+.picker-vs{font-family:var(--font-display);font-size:1.5rem;font-style:italic;color:var(--text3);text-align:center;padding-bottom:8px}
+.picker-side{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.picker-side.a-side{border-color:var(--a-border)}
+.picker-side.b-side{border-color:var(--b-border)}
+.picker-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.picker-side.a-side .picker-label{color:var(--a2)}
+.picker-side.b-side .picker-label{color:var(--b2)}
+select,input[type=text],input[type=number]{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:14px;padding:9px 12px;width:100%;outline:none;-webkit-appearance:none;transition:border-color 0.18s}
+select:focus,input:focus{border-color:var(--a)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235c5a70' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+option{background:#1a1a24}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3)}
+.hint{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.5}
+
+/* BUTTON */
+.btn{width:100%;padding:13px 24px;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.18s;letter-spacing:0.02em}
+.btn-primary{background:var(--a);color:#fff}
+.btn-primary:hover{background:var(--a2);transform:translateY(-1px)}
+
+/* RESULTS */
+.results{display:none;animation:up 0.4s ease}
+.results.show{display:block}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* SUBURB HEADERS */
+.compare-header{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
+.suburb-header{border-radius:var(--rl);padding:1.5rem;border:1px solid}
+.suburb-header.a{background:var(--a-bg);border-color:var(--a-border)}
+.suburb-header.b{background:var(--b-bg);border-color:var(--b-border)}
+.sh-tag{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.suburb-header.a .sh-tag{color:var(--a2)}
+.suburb-header.b .sh-tag{color:var(--b2)}
+.sh-name{font-family:var(--font-display);font-size:1.6rem;line-height:1.1;margin-bottom:4px}
+.sh-type{font-size:12px;color:var(--text2)}
+.sh-score{font-family:var(--font-display);font-size:2.8rem;font-weight:400;line-height:1}
+.suburb-header.a .sh-score{color:var(--a2)}
+.suburb-header.b .sh-score{color:var(--b2)}
+.sh-score-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-top:4px}
+
+/* SECTION LABEL */
+.section-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-wrap{margin-bottom:2rem}
+
+/* METRIC ROWS */
+.metric-compare-grid{display:flex;flex-direction:column;gap:2px}
+.metric-row{display:grid;grid-template-columns:1fr 200px 1fr;gap:0;background:var(--bg2);border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.metric-row:hover{border-color:var(--border2)}
+.metric-a,.metric-b{padding:12px 16px}
+.metric-a{background:rgba(124,106,247,0.04);text-align:left}
+.metric-b{background:rgba(249,115,22,0.04);text-align:right}
+.metric-center{background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 12px;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.metric-name{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);text-align:center;line-height:1.4}
+.metric-desc{font-size:10px;color:var(--text3);text-align:center;margin-top:2px;line-height:1.4}
+.metric-val{font-size:17px;font-weight:700;line-height:1.2}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.metric-a .metric-val{color:var(--a2)}
+.metric-b .metric-val{color:var(--b2)}
+.metric-a.winner{background:rgba(124,106,247,0.12)}
+.metric-b.winner{background:rgba(249,115,22,0.12)}
+.winner-tag{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:999px;margin-top:4px;display:inline-block}
+.metric-a .winner-tag{background:var(--a-bg);color:var(--a2);border:1px solid var(--a-border)}
+.metric-b .winner-tag{background:var(--b-bg);color:var(--b2);border:1px solid var(--b-border)}
+
+/* RADAR / SCORE BARS */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.score-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.score-card-title{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1rem}
+.score-card.a .score-card-title{color:var(--a2)}
+.score-card.b .score-card-title{color:var(--b2)}
+.score-bar-item{margin-bottom:12px}
+.score-bar-item:last-child{margin-bottom:0}
+.score-bar-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.score-bar-header .label{color:var(--text2)}
+.score-bar-header .val{font-weight:600;color:var(--text)}
+.score-track{height:5px;background:var(--bg4);border-radius:999px;overflow:hidden}
+.score-fill{height:100%;border-radius:999px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1)}
+.score-fill.a{background:var(--a)}
+.score-fill.b{background:var(--b)}
+
+/* RECOMMENDATION */
+.recommendation{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);padding:2rem;margin-bottom:2rem}
+.rec-header{display:flex;align-items:center;gap:16px;margin-bottom:1.25rem}
+.rec-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.rec-icon.a{background:var(--a-bg);border:1px solid var(--a-border)}
+.rec-icon.b{background:var(--b-bg);border:1px solid var(--b-border)}
+.rec-icon.tie{background:var(--green-bg);border:1px solid rgba(52,211,153,0.25)}
+.rec-title{font-family:var(--font-display);font-size:1.4rem;line-height:1.2}
+.rec-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.rec-body{font-size:13px;color:var(--text2);line-height:1.8}
+.rec-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
+.rec-pill{font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;border:1px solid}
+.rec-pill.a{background:var(--a-bg);color:var(--a2);border-color:var(--a-border)}
+.rec-pill.b{background:var(--b-bg);color:var(--b2);border-color:var(--b-border)}
+.rec-pill.neutral{background:var(--bg3);color:var(--text2);border-color:var(--border2)}
+
+/* 10YR TABLE */
+.proj-table{width:100%;border-collapse:collapse}
+.proj-table th{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:10px 8px;border-bottom:1px solid var(--border2);text-align:right}
+.proj-table th:first-child{text-align:left}
+.proj-table td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--border);text-align:right}
+.proj-table td:first-child{text-align:left;color:var(--text2)}
+.proj-table .a-col{color:var(--a2)}
+.proj-table .b-col{color:var(--b2)}
+.proj-table tr:last-child td{border-bottom:none;font-weight:700;font-size:14px}
+
+/* BUYER PROFILE */
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem}
+.profile-card-title{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.profile-emoji{font-size:20px;margin-bottom:6px}
+.profile-card h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.profile-card p{font-size:11px;color:var(--text3);line-height:1.6}
+.profile-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-bottom:6px}
+.profile-badge.a{background:var(--a-bg);color:var(--a2);border:1px solid var(--a-border)}
+.profile-badge.b{background:var(--b-bg);color:var(--b2);border:1px solid var(--b-border)}
+
+/* TABS */
+.tab-nav{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab-link{padding:8px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;margin-bottom:-1px;transition:all 0.15s}
+.tab-link:hover{color:var(--text2)}
+.tab-link.active{color:var(--a2);border-bottom-color:var(--a);font-weight:600}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:16px}
+
+/* DISCLAIMER */
+.disclaimer{font-size:11px;color:var(--text3);line-height:1.7;padding:1rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-top:2rem}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">Suburb<em>IQ</em></div>
+  <div class="nav-meta">Melbourne Suburb Comparison · 2024–25</div>
+</nav>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-eyebrow">Suburb Analysis Dashboard</div>
+    <h1 class="hero-title">Compare suburbs like<br><em>a professional analyst.</em></h1>
+    <p class="hero-sub">Side-by-side analysis across affordability, rental yield, capital growth, liveability, and investor profile — all Melbourne suburbs, all in one view.</p>
+  </div>
+
+  <!-- PICKER -->
+  <div class="picker">
+    <div class="picker-side a-side">
+      <div class="picker-label">Suburb A</div>
+      <div class="field">
+        <label>Select Suburb</label>
+        <select id="suburbA">
+          <option value="richmond">Richmond</option>
+          <option value="fitzroy">Fitzroy</option>
+          <option value="collingwood">Collingwood</option>
+          <option value="prahran">Prahran</option>
+          <option value="southyarra">South Yarra</option>
+          <option value="stkilda">St Kilda</option>
+          <option value="carlton">Carlton</option>
+          <option value="brunswick">Brunswick</option>
+          <option value="northcote">Northcote</option>
+          <option value="footscray">Footscray</option>
+          <option value="yarraville">Yarraville</option>
+          <option value="newport">Newport</option>
+          <option value="bentleigheast" selected>Bentleigh East</option>
+          <option value="oakleighsouth">Oakleigh South</option>
+          <option value="caulfield">Caulfield</option>
+          <option value="glen waverley">Glen Waverley</option>
+          <option value="boxhill">Box Hill</option>
+          <option value="doncaster">Doncaster</option>
+          <option value="ringwood">Ringwood</option>
+          <option value="frankston">Frankston</option>
+          <option value="cranbourne">Cranbourne</option>
+          <option value="pakenham">Pakenham</option>
+          <option value="werribee">Werribee</option>
+          <option value="sunbury">Sunbury</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Property Focus</label>
+        <select id="typeA">
+          <option value="house">Houses</option>
+          <option value="unit" selected>Units / Apartments</option>
+          <option value="both">Mixed</option>
+        </select>
+      </div>
+    </div>
+    <div class="picker-vs">vs</div>
+    <div class="picker-side b-side">
+      <div class="picker-label">Suburb B</div>
+      <div class="field">
+        <label>Select Suburb</label>
+        <select id="suburbB">
+          <option value="richmond">Richmond</option>
+          <option value="fitzroy">Fitzroy</option>
+          <option value="collingwood">Collingwood</option>
+          <option value="prahran">Prahran</option>
+          <option value="southyarra">South Yarra</option>
+          <option value="stkilda">St Kilda</option>
+          <option value="carlton">Carlton</option>
+          <option value="brunswick">Brunswick</option>
+          <option value="northcote">Northcote</option>
+          <option value="footscray" selected>Footscray</option>
+          <option value="yarraville">Yarraville</option>
+          <option value="newport">Newport</option>
+          <option value="bentleigheast">Bentleigh East</option>
+          <option value="oakleighsouth">Oakleigh South</option>
+          <option value="caulfield">Caulfield</option>
+          <option value="glen waverley">Glen Waverley</option>
+          <option value="boxhill">Box Hill</option>
+          <option value="doncaster">Doncaster</option>
+          <option value="ringwood">Ringwood</option>
+          <option value="frankston">Frankston</option>
+          <option value="cranbourne">Cranbourne</option>
+          <option value="pakenham">Pakenham</option>
+          <option value="werribee">Werribee</option>
+          <option value="sunbury">Sunbury</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Property Focus</label>
+        <select id="typeB">
+          <option value="house">Houses</option>
+          <option value="unit" selected>Units / Apartments</option>
+          <option value="both">Mixed</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="compare()">Run Comparison →</button>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div style="margin-top:3rem;margin-bottom:1.5rem">
+      <div class="compare-header" id="compareHeader"></div>
+    </div>
+
+    <!-- RECOMMENDATION -->
+    <div class="section-wrap">
+      <div class="section-label">Analyst verdict</div>
+      <div class="recommendation" id="recommendation"></div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="section-wrap">
+      <div class="section-label">Head-to-head metrics</div>
+      <div class="metric-compare-grid" id="metricsGrid"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="card">
+      <div class="tab-nav">
+        <button class="tab-link active" onclick="openTab('scores',this)">Score Breakdown</button>
+        <button class="tab-link" onclick="openTab('projection',this)">10-Year Projection</button>
+        <button class="tab-link" onclick="openTab('buyerprofile',this)">Buyer Profiles</button>
+      </div>
+      <div class="tab-panel active" id="tab-scores">
+        <div class="score-grid" id="scoreGrid"></div>
+      </div>
+      <div class="tab-panel" id="tab-projection">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Projected median property value over 10 years based on historical growth rates</p>
+        <table class="proj-table" id="projTable"></table>
+      </div>
+      <div class="tab-panel" id="tab-buyerprofile">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Which buyer type is each suburb best suited for?</p>
+        <div class="profile-grid" id="profileGrid"></div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong style="color:var(--text2)">Data notice:</strong> Suburb data reflects estimated 2024–25 Melbourne market figures based on publicly available CoreLogic, REIV, and Domain data. Figures are indicative and rounded. Always verify with current market evidence before making investment decisions. Not financial advice.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── SUBURB DATA ──
+// Each suburb: medianHouse, medianUnit, grossYieldH, grossYieldU, growth5yr, growth10yr,
+// rentVacancy, daysOnMarket, distanceCBD, trainAccess(0-10), schoolRating(0-10),
+// crimeIndex(0-10, lower=safer), cafesScore(0-10), developmentActivity(0-10), liveabilityScore(0-10)
+const SUBURBS = {
+  richmond:      {name:'Richmond',      medH:1420000,medU:620000, yH:2.8,yU:4.2, g5:32,g10:68, vac:1.8,dom:24, dist:3,  train:9,school:7,crime:5,cafe:9,dev:7,live:8},
+  fitzroy:       {name:'Fitzroy',       medH:1550000,medU:580000, yH:2.5,yU:4.5, g5:35,g10:72, vac:2.1,dom:22, dist:2,  train:7,school:7,crime:5,cafe:10,dev:6,live:9},
+  collingwood:   {name:'Collingwood',   medH:1380000,medU:560000, yH:2.7,yU:4.6, g5:28,g10:61, vac:2.3,dom:26, dist:3,  train:8,school:6,crime:6,cafe:9,dev:8,live:8},
+  prahran:       {name:'Prahran',       medH:1620000,medU:590000, yH:2.6,yU:4.3, g5:30,g10:65, vac:2.0,dom:21, dist:4,  train:8,school:7,crime:5,cafe:9,dev:6,live:9},
+  southyarra:    {name:'South Yarra',   medH:1850000,medU:650000, yH:2.4,yU:4.1, g5:27,g10:58, vac:2.2,dom:23, dist:4,  train:9,school:8,crime:4,cafe:9,dev:5,live:9},
+  stkilda:       {name:'St Kilda',      medH:1450000,medU:540000, yH:2.9,yU:4.7, g5:25,g10:55, vac:2.8,dom:28, dist:6,  train:7,school:6,crime:7,cafe:9,dev:6,live:8},
+  carlton:       {name:'Carlton',       medH:1280000,medU:490000, yH:3.0,yU:5.2, g5:22,g10:48, vac:3.2,dom:30, dist:2,  train:7,school:8,crime:6,cafe:8,dev:7,live:8},
+  brunswick:     {name:'Brunswick',     medH:1180000,medU:510000, yH:3.2,yU:4.8, g5:38,g10:80, vac:1.9,dom:19, dist:5,  train:8,school:7,crime:6,cafe:9,dev:8,live:8},
+  northcote:     {name:'Northcote',     medH:1320000,medU:570000, yH:3.0,yU:4.5, g5:40,g10:85, vac:1.7,dom:17, dist:7,  train:8,school:8,crime:5,cafe:8,dev:7,live:9},
+  footscray:     {name:'Footscray',     medH:870000, medU:450000, yH:3.8,yU:5.1, g5:48,g10:95, vac:2.1,dom:22, dist:5,  train:9,school:6,crime:7,cafe:7,dev:9,live:7},
+  yarraville:    {name:'Yarraville',    medH:1050000,medU:530000, yH:3.4,yU:4.6, g5:42,g10:88, vac:1.8,dom:18, dist:6,  train:8,school:7,crime:5,cafe:8,dev:7,live:8},
+  newport:       {name:'Newport',       medH:1150000,medU:580000, yH:3.3,yU:4.4, g5:38,g10:78, vac:1.6,dom:16, dist:10, train:7,school:7,crime:4,cafe:7,dev:6,live:8},
+  bentleigheast: {name:'Bentleigh East',medH:1380000,medU:620000, yH:3.0,yU:4.2, g5:35,g10:73, vac:1.5,dom:15, dist:14, train:7,school:8,crime:3,cafe:6,dev:6,live:8},
+  oakleighsouth: {name:'Oakleigh South',medH:1180000,medU:560000, yH:3.3,yU:4.5, g5:32,g10:68, vac:1.7,dom:18, dist:15, train:7,school:7,crime:4,cafe:6,dev:5,live:7},
+  caulfield:     {name:'Caulfield',     medH:1650000,medU:650000, yH:2.7,yU:4.0, g5:28,g10:60, vac:1.9,dom:22, dist:10, train:8,school:9,crime:3,cafe:7,dev:5,live:9},
+  'glen waverley':{name:'Glen Waverley',medH:1420000,medU:680000, yH:2.9,yU:4.1, g5:30,g10:62, vac:1.4,dom:16, dist:20, train:8,school:10,crime:2,cafe:7,dev:6,live:9},
+  boxhill:       {name:'Box Hill',      medH:1250000,medU:590000, yH:3.1,yU:4.6, g5:35,g10:74, vac:1.8,dom:19, dist:15, train:8,school:8,crime:4,cafe:8,dev:8,live:8},
+  doncaster:     {name:'Doncaster',     medH:1350000,medU:640000, yH:2.9,yU:4.2, g5:28,g10:60, vac:1.6,dom:18, dist:16, train:4,school:8,crime:3,cafe:6,dev:5,live:8},
+  ringwood:      {name:'Ringwood',      medH:980000, medU:530000, yH:3.5,yU:4.8, g5:33,g10:70, vac:1.9,dom:20, dist:25, train:8,school:7,crime:5,cafe:6,dev:7,live:7},
+  frankston:     {name:'Frankston',     medH:680000, medU:390000, yH:4.5,yU:6.0, g5:38,g10:78, vac:2.4,dom:26, dist:40, train:8,school:6,crime:7,cafe:5,dev:6,live:6},
+  cranbourne:    {name:'Cranbourne',    medH:620000, medU:370000, yH:4.8,yU:6.2, g5:42,g10:85, vac:2.0,dom:22, dist:43, train:6,school:6,crime:6,cafe:4,dev:7,live:6},
+  pakenham:      {name:'Pakenham',      medH:580000, medU:350000, yH:5.0,yU:6.5, g5:44,g10:90, vac:1.8,dom:20, dist:55, train:7,school:6,crime:5,cafe:4,dev:8,live:6},
+  werribee:      {name:'Werribee',      medH:540000, medU:330000, yH:5.2,yU:6.8, g5:46,g10:95, vac:2.2,dom:24, dist:32, train:7,school:5,crime:6,cafe:4,dev:8,live:5},
+  sunbury:       {name:'Sunbury',       medH:620000, medU:380000, yH:4.6,yU:6.0, g5:40,g10:82, vac:1.9,dom:21, dist:40, train:7,school:6,crime:4,cafe:5,dev:7,live:6},
+};
+
+function getMedian(d, type) {
+  if(type==='house') return d.medH;
+  if(type==='unit') return d.medU;
+  return Math.round((d.medH + d.medU) / 2);
+}
+function getYield(d, type) {
+  if(type==='house') return d.yH;
+  if(type==='unit') return d.yU;
+  return ((d.yH + d.yU) / 2);
+}
+function fmt(n){return '$'+Math.round(n).toLocaleString('en-AU')}
+function fmtPct(n){return n.toFixed(1)+'%'}
+function openTab(name,btn){
+  document.querySelectorAll('.tab-link').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function score(d, type) {
+  const y = getYield(d, type);
+  const med = getMedian(d, type);
+  return {
+    affordability: Math.max(0, Math.min(10, 10 - (med / 200000))),
+    yield:         Math.min(10, y * 1.6),
+    growth:        Math.min(10, d.g10 / 10),
+    liveability:   d.live,
+    transport:     d.train,
+    schools:       d.school,
+    safety:        10 - d.crime,
+    development:   d.dev,
+  };
+}
+
+function totalScore(sc) {
+  return ((sc.yield * 2 + sc.growth * 2 + sc.affordability * 1.5 + sc.liveability + sc.transport + sc.schools + sc.safety + sc.development * 0.5) / 11.5).toFixed(1);
+}
+
+function compare() {
+  const keyA = document.getElementById('suburbA').value;
+  const keyB = document.getElementById('suburbB').value;
+  const typeA = document.getElementById('typeA').value;
+  const typeB = document.getElementById('typeB').value;
+  const dA = SUBURBS[keyA], dB = SUBURBS[keyB];
+  const scA = score(dA, typeA), scB = score(dB, typeB);
+  const totA = parseFloat(totalScore(scA)), totB = parseFloat(totalScore(scB));
+  const medA = getMedian(dA, typeA), medB = getMedian(dB, typeB);
+  const yA = getYield(dA, typeA), yB = getYield(dB, typeB);
+
+  // ── HEADERS ──
+  document.getElementById('compareHeader').innerHTML = `
+    <div class="suburb-header a">
+      <div class="sh-tag">Suburb A</div>
+      <div class="sh-name">${dA.name}</div>
+      <div class="sh-type">${typeA === 'house' ? 'Houses' : typeA === 'unit' ? 'Units / Apartments' : 'Mixed'} · ${dA.dist}km from CBD</div>
+      <div style="margin-top:12px;display:flex;align-items:baseline;gap:12px">
+        <div><div class="sh-score">${totA}</div><div class="sh-score-label">Investment Score</div></div>
+      </div>
+    </div>
+    <div class="suburb-header b">
+      <div class="sh-tag">Suburb B</div>
+      <div class="sh-name">${dB.name}</div>
+      <div class="sh-type">${typeB === 'house' ? 'Houses' : typeB === 'unit' ? 'Units / Apartments' : 'Mixed'} · ${dB.dist}km from CBD</div>
+      <div style="margin-top:12px;display:flex;align-items:baseline;gap:12px">
+        <div><div class="sh-score">${totB}</div><div class="sh-score-label">Investment Score</div></div>
+      </div>
+    </div>`;
+
+  // ── RECOMMENDATION ──
+  let winner, winnerSide, recBody, pills;
+  const diff = Math.abs(totA - totB);
+  if (diff < 0.4) {
+    winner = 'Comparable suburbs — depends on your strategy';
+    winnerSide = 'tie';
+    recBody = `${dA.name} and ${dB.name} score within ${diff.toFixed(1)} points of each other, which means neither has a clear overall edge. The right choice depends entirely on what you prioritise: ${dA.name} offers ${yA > yB ? 'stronger rental yield' : 'better capital growth potential'}, while ${dB.name} suits ${medB < medA ? 'buyers with a tighter budget' : 'those seeking a premium location'}.`;
+    pills = [`<span class="rec-pill neutral">Close call</span>`,`<span class="rec-pill neutral">Strategy-dependent</span>`];
+  } else if (totA > totB) {
+    winner = `${dA.name} edges ahead`;
+    winnerSide = 'a';
+    recBody = `${dA.name} scores ${totA} vs ${dB.name}'s ${totB} — a ${diff.toFixed(1)}-point lead. The key advantages are ${scA.yield > scB.yield ? 'stronger rental yield' : ''}${scA.growth > scB.growth ? (scA.yield > scB.yield ? ' and ' : '') + 'higher historical capital growth' : ''}${scA.affordability > scB.affordability ? ' and lower entry cost' : ''}. That said, ${dB.name} may suit buyers who specifically want ${scB.liveability > scA.liveability ? 'higher liveability scores' : scB.schools > scA.schools ? 'better school catchments' : 'closer CBD proximity'}.`;
+    pills = [`<span class="rec-pill a">${dA.name} recommended</span>`,`<span class="rec-pill neutral">Score: ${totA} vs ${totB}</span>`];
+  } else {
+    winner = `${dB.name} edges ahead`;
+    winnerSide = 'b';
+    recBody = `${dB.name} scores ${totB} vs ${dA.name}'s ${totA} — a ${diff.toFixed(1)}-point lead. The key advantages are ${scB.yield > scA.yield ? 'stronger rental yield' : ''}${scB.growth > scA.growth ? (scB.yield > scA.yield ? ' and ' : '') + 'higher historical capital growth' : ''}${scB.affordability > scA.affordability ? ' and lower entry cost' : ''}. That said, ${dA.name} may suit buyers who specifically want ${scA.liveability > scB.liveability ? 'higher liveability scores' : scA.schools > scB.schools ? 'better school catchments' : 'closer CBD proximity'}.`;
+    pills = [`<span class="rec-pill b">${dB.name} recommended</span>`,`<span class="rec-pill neutral">Score: ${totB} vs ${totA}</span>`];
+  }
+  const icons = {a:'🏆',b:'🏆',tie:'⚖️'};
+  document.getElementById('recommendation').innerHTML = `
+    <div class="rec-header">
+      <div class="rec-icon ${winnerSide}">${icons[winnerSide]}</div>
+      <div><div class="rec-title">${winner}</div><div class="rec-sub">Based on yield, growth, affordability, liveability, and infrastructure scores</div></div>
+    </div>
+    <div class="rec-body">${recBody}</div>
+    <div class="rec-pills">${pills.join('')}</div>`;
+
+  // ── METRICS ──
+  const metrics = [
+    { name:'Median Price', desc:'Selected property type', vA:fmt(medA), vB:fmt(medB), rawA:medA, rawB:medB, lowerBetter:true },
+    { name:'Gross Yield', desc:'Annual rent / price', vA:fmtPct(yA), vB:fmtPct(yB), rawA:yA, rawB:yB, lowerBetter:false },
+    { name:'5-Year Growth', desc:'Median price appreciation', vA:fmtPct(dA.g5), vB:fmtPct(dB.g5), rawA:dA.g5, rawB:dB.g5, lowerBetter:false },
+    { name:'10-Year Growth', desc:'Long-run capital growth', vA:fmtPct(dA.g10), vB:fmtPct(dB.g10), rawA:dA.g10, rawB:dB.g10, lowerBetter:false },
+    { name:'Vacancy Rate', desc:'Lower = tighter rental market', vA:fmtPct(dA.vac), vB:fmtPct(dB.vac), rawA:dA.vac, rawB:dB.vac, lowerBetter:true },
+    { name:'Days on Market', desc:'Avg days to sell', vA:dA.dom+' days', vB:dB.dom+' days', rawA:dA.dom, rawB:dB.dom, lowerBetter:true },
+    { name:'Distance to CBD', desc:'Approx. km by road', vA:dA.dist+'km', vB:dB.dist+'km', rawA:dA.dist, rawB:dB.dist, lowerBetter:true },
+    { name:'Train Access', desc:'Score out of 10', vA:dA.train+'/10', vB:dB.train+'/10', rawA:dA.train, rawB:dB.train, lowerBetter:false },
+    { name:'School Rating', desc:'Catchment quality', vA:dA.school+'/10', vB:dB.school+'/10', rawA:dA.school, rawB:dB.school, lowerBetter:false },
+    { name:'Safety Score', desc:'Lower crime = higher score', vA:(10-dA.crime)+'/10', vB:(10-dB.crime)+'/10', rawA:10-dA.crime, rawB:10-dB.crime, lowerBetter:false },
+    { name:'Café & Lifestyle', desc:'Walkability & amenity', vA:dA.cafe+'/10', vB:dB.cafe+'/10', rawA:dA.cafe, rawB:dB.cafe, lowerBetter:false },
+    { name:'Development Activity', desc:'Pipeline & growth signal', vA:dA.dev+'/10', vB:dB.dev+'/10', rawA:dA.dev, rawB:dB.dev, lowerBetter:false },
+  ];
+  document.getElementById('metricsGrid').innerHTML = metrics.map(m => {
+    const aWins = m.lowerBetter ? m.rawA < m.rawB : m.rawA > m.rawB;
+    const bWins = m.lowerBetter ? m.rawB < m.rawA : m.rawB > m.rawA;
+    const tie = m.rawA === m.rawB;
+    return `<div class="metric-row">
+      <div class="metric-a${aWins&&!tie?' winner':''}">
+        <div class="metric-val">${m.vA}</div>
+        ${aWins&&!tie?'<span class="winner-tag">Better</span>':''}
+      </div>
+      <div class="metric-center">
+        <div class="metric-name">${m.name}</div>
+        <div class="metric-desc">${m.desc}</div>
+      </div>
+      <div class="metric-b${bWins&&!tie?' winner':''}">
+        <div class="metric-val">${m.vB}</div>
+        ${bWins&&!tie?'<span class="winner-tag">Better</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── SCORE CARDS ──
+  const scoreLabels = {affordability:'Affordability',yield:'Rental Yield',growth:'Capital Growth',liveability:'Liveability',transport:'Transport',schools:'Schools',safety:'Safety',development:'Development'};
+  function scoreCard(sc, side, name) {
+    return `<div class="score-card ${side}">
+      <div class="score-card-title">${name}</div>
+      ${Object.entries(scoreLabels).map(([k,label])=>`
+        <div class="score-bar-item">
+          <div class="score-bar-header"><span class="label">${label}</span><span class="val">${parseFloat(sc[k]).toFixed(1)}/10</span></div>
+          <div class="score-track"><div class="score-fill ${side}" style="width:${Math.min(100,sc[k]*10).toFixed(0)}%"></div></div>
+        </div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('scoreGrid').innerHTML = scoreCard(scA,'a',dA.name) + scoreCard(scB,'b',dB.name);
+
+  // ── 10-YEAR PROJECTION ──
+  let rows = `<tr><th>Year</th><th class="a-col">${dA.name} Value</th><th class="a-col">Equity Gain</th><th class="b-col">${dB.name} Value</th><th class="b-col">Equity Gain</th></tr>`;
+  let vA2 = medA, vB2 = medB;
+  const grA = dA.g10 / 10 / 100, grB = dB.g10 / 10 / 100;
+  for(let yr=1;yr<=10;yr++){
+    vA2 *= (1+grA); vB2 *= (1+grB);
+    const gainA = vA2-medA, gainB = vB2-medB;
+    rows += `<tr><td>Year ${yr}</td><td class="a-col">${fmt(vA2)}</td><td class="a-col">+${fmt(gainA)}</td><td class="b-col">${fmt(vB2)}</td><td class="b-col">+${fmt(gainB)}</td></tr>`;
+  }
+  document.getElementById('projTable').innerHTML = rows;
+
+  // ── BUYER PROFILES ──
+  const profiles = [
+    { title:'First Home Buyer', emoji:'🏠', a: medA < 800000 ? dA.name : null, b: medB < 800000 ? dB.name : null, desc: 'Needs affordability and strong liveability. Best for: low median price, good schools, safe streets.' },
+    { title:'Yield Investor', emoji:'📈', a: yA >= 4.0 ? dA.name : null, b: yB >= 4.0 ? dB.name : null, desc: 'Prioritises rental income over capital growth. Best for: gross yield above 4%, low vacancy, strong rental demand.' },
+    { title:'Growth Investor', emoji:'🚀', a: dA.g10 >= 70 ? dA.name : null, b: dB.g10 >= 70 ? dB.name : null, desc: 'Willing to negative gear for long-term capital gain. Best for: 10-year growth above 70%, development activity.' },
+    { title:'Owner Occupier', emoji:'🌿', a: dA.live >= 8 ? dA.name : null, b: dB.live >= 8 ? dB.name : null, desc: 'Prioritises lifestyle, schools, and liveability. Best for: high liveability, transport, café score, safety.' },
+    { title:'Developer / Subdivider', emoji:'🏗️', a: dA.dev >= 8 ? dA.name : null, b: dB.dev >= 8 ? dB.name : null, desc: 'Looking for development uplift and rezoning opportunity. Best for: high development activity score, growth zones.' },
+  ];
+  document.getElementById('profileGrid').innerHTML = profiles.map(p => {
+    const fits = [];
+    if(p.a) fits.push({side:'a',name:p.a});
+    if(p.b) fits.push({side:'b',name:p.b});
+    const badges = fits.length ? fits.map(f=>`<span class="profile-badge ${f.side}">${f.name}</span>`).join(' ') : `<span style="font-size:11px;color:var(--text3)">Neither suburb fits this profile</span>`;
+    return `<div class="profile-card"><div class="profile-card-title">${p.title}</div><div class="profile-emoji">${p.emoji}</div><div style="margin-bottom:6px">${badges}</div><p>${p.desc}</p></div>`;
+  }).join('');
+
+  document.getElementById('results').classList.add('show');
+  setTimeout(()=>document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+</script>
+</body>
+</html>
